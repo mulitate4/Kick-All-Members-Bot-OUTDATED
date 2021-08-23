@@ -1,14 +1,11 @@
 import discord
 from discord.ext import commands
-from discord import Client
-from discord import Server
-import configparser
-import os
-config = configparser.ConfigParser()
-config.read('config.ini')
 
-bot = commands.Bot(command_prefix='!')
-client = discord.Client()
+intents = discord.Intents.default()
+intents.members = True
+
+bot = commands.Bot(command_prefix='!', intents=intents)
+TOKEN = ""
 
 @bot.event
 async def on_ready():
@@ -16,15 +13,24 @@ async def on_ready():
     print(bot.user.name)
     print(bot.user.id)
     print('------')
-    await client.login(config['TOKEN']['TOKEN'])
 
 @bot.command(pass_context=True)
+async def test(ctx):
+    await ctx.send("bruh moment")
+
+@bot.command(pass_context=True)
+@commands.guild_only()
+@commands.has_permissions(kick_members=True)
 async def kickall(ctx):
-    if ctx.message.author.server_permissions.administrator and ctx.message.server.me.server_permissions.kick_members:
-        for member in ctx.message.server.members:
-            if member != ctx.message.author and member != ctx.message.server.me:
-                await client.kick(member)
-        await bot.say('All members kicked.')
-    else:
-        await bot.say('Error: Not administrator')
-bot.run(config['TOKEN']['TOKEN'])
+    guild = ctx.message.guild
+    users = ctx.message.guild.members
+
+    for user in users:
+        print(user)
+        try:
+            await user.kick()
+            print(user+"kicked")
+        except:
+            continue
+
+bot.run(TOKEN, reconnect=True)
